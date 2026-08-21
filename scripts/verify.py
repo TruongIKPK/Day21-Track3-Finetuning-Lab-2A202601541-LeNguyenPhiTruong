@@ -23,6 +23,12 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 OK, WARN, FAIL = "PASS", "WARN", "FAIL"
 results: list[tuple[str, str, str]] = []
 
@@ -32,7 +38,8 @@ def check(name: str, status: str, detail: str = "") -> None:
 
 
 def _sha(path: pathlib.Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
+    raw = path.read_text(encoding="utf-8").replace("\r\n", "\n").encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()[:16]
 
 
 def _load_json(path: pathlib.Path):
